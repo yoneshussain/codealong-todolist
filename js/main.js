@@ -32,7 +32,9 @@ const clearDoneButton = document.querySelector("#clear-done");
 // Kan todos vara const fast vi ska ändra i den?
 
 const STORAGE_KEY = "todos"
+const STORAGE_KEY2 = "checked"
 const todos = loadTodos()
+let checked = loadChecked()
 // const todos = []
 
 // Steg 3: Spara och ladda med localStorage
@@ -55,9 +57,23 @@ function loadTodos() {
     return JSON.parse(saved)
 }
 
+function loadChecked() {
+
+    const saved = localStorage.getItem(STORAGE_KEY2)
+
+    // första gången inget sparat, returnera null
+    if (saved === null) {
+        return [];
+    }
+
+    // JSON STRÄNG => JS OBJECT
+    return JSON.parse(saved)
+}
+
 function saveTodos() {
     // SPARA VÅRT JS OBJECT TILL JSON STRÄNG
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+    localStorage.setItem(STORAGE_KEY2, JSON.stringify(checked))
 }
 
 // Steg 4: Rendera listan
@@ -81,7 +97,18 @@ function saveTodos() {
 // när det inte finns något klart att rensa.
 
 function renderCount() {
-    
+    const todos = loadTodos()
+    const todosArray = Object.keys(todos)
+    const arrayCount = todosArray.length - checked
+    // console.log(arrayCount)
+
+    count.textContent = `${arrayCount} kvar`
+
+    if (checked === 0) {
+        clearDoneButton.setAttribute("disabled", true)
+    } else if (checked > 0) {
+        clearDoneButton.removeAttribute("disabled")
+    }
 }
 
 function renderTodos() {
@@ -169,10 +196,11 @@ form.addEventListener("submit", (event) => {
 
     renderTodos()
     saveAndRender();
+    renderCount()
 
     input.value = "";
 
-    console.log(todos)
+    // console.log(todos)
 })
 
 
@@ -206,9 +234,17 @@ list.addEventListener("change", (event) => {
     const todo = todos[findIndexById(id)];
 
     todo.done = event.target.checked
-    console.log(todos)
+
+    if (todo.done === true) {
+        checked++
+    } else if (todo.done === false) {
+        checked--
+    }
+
+    // console.log(todos)
     renderTodos()
     saveAndRender()
+    renderCount()
 
 
 
@@ -231,10 +267,11 @@ list.addEventListener("click", (event) => {
 
     todos.splice(index, 1)
 
-    console.log(todos)
+    // console.log(todos)
 
     renderTodos()
     saveAndRender()
+    renderCount()
 })
 
 
@@ -243,8 +280,33 @@ list.addEventListener("click", (event) => {
 // Ta bort alla klara med splice i en loop.
 // Testa att loopa framåt först. Vad händer med två klara i rad?
 
+clearDoneButton.addEventListener("click", (event) => {
+
+    const doneChecked = todos.filter(todo => todo.done)
+    const doneIds = doneChecked.map(todo => todo.id)
+
+    console.log(doneIds)
+
+    for (id of doneIds) {
+        const index = findIndexById(id)
+        todos.splice (index, 1)
+    }
+
+    checked = 0
+    // Hitta index utifrån Id
+    // const index = findIndexById(id)
+
+    // Ta bort todon från lista
+
+    // todos.splice(index, 1)
+
+    renderTodos()
+    saveAndRender()
+    renderCount()
+})
 
 // Steg 10: Rita listan när sidan laddas
 // ---------------------------------------------------------------
 
 renderTodos()
+renderCount()
