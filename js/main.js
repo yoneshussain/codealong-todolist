@@ -31,7 +31,9 @@ const clearDoneButton = document.querySelector("#clear-done");
 // Skapa konstanten STORAGE_KEY och arrayen todos.
 // Kan todos vara const fast vi ska ändra i den?
 
-
+const STORAGE_KEY = "todos"
+const todos = loadTodos()
+// const todos = []
 
 // Steg 3: Spara och ladda med localStorage
 // ---------------------------------------------------------------
@@ -40,11 +42,27 @@ const clearDoneButton = document.querySelector("#clear-done");
 // localStorage kan bara spara strängar: JSON.stringify och JSON.parse.
 // Titta i DevTools → Application → Local Storage medan du testar.
 
+function loadTodos() {
 
+    const saved = localStorage.getItem(STORAGE_KEY)
+
+    // första gången inget sparat, returnera null
+    if (saved === null) {
+        return [];
+    }
+
+    // JSON STRÄNG => JS OBJECT
+    return JSON.parse(saved)
+}
+
+function saveTodos() {
+    // SPARA VÅRT JS OBJECT TILL JSON STRÄNG
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+}
 
 // Steg 4: Rendera listan
 // ---------------------------------------------------------------
-// renderTodos() tömmer listan och bygger upp den igen från arrayen.
+// saveAndRender() tömmer listan och bygger upp den igen från arrayen.
 // Visa empty-state bara när listan är tom.
 //
 // createTodoItem(todo) bygger en rad. Strukturen måste matcha CSS:en:
@@ -62,12 +80,63 @@ const clearDoneButton = document.querySelector("#clear-done");
 // renderCount() skriver "2 kvar" och stänger av "Rensa klara"
 // när det inte finns något klart att rensa.
 
+function renderCount() {
+    
+}
+
+function renderTodos() {
+    list.replaceChildren();
+
+    for (const todo of todos) {
+        list.append(createTodoItem(todo))
+    }
+
+    if (todos.length === 0) {
+        emptyState.hidden = false
+    } else {
+        emptyState.hidden = true
+    }
+}
+
+function createTodoItem(todo) {
+    const li = document.createElement("li")
+    li.className = "todo-item"
+    li.classList.toggle("is-done", todo.done)
+    li.dataset.id = todo.id
+
+    const label = document.createElement("label")
+    label.className = "todo-item-label"
+
+    const checkbox = document.createElement("input")
+    checkbox.className = "todo-item-checkbox"
+    checkbox.type = "checkbox"
+    checkbox.checked = todo.done
+
+    const text = document.createElement("span")
+    text.className = "todo-item-text"
+    text.textContent = todo.text
+
+    const deleteButton = document.createElement("button")
+    deleteButton.className = "todo-item-delete"
+    deleteButton.type = "button"
+    deleteButton.textContent = "X"
+
+    label.append(checkbox, text)
+    li.append(label, deleteButton)
+
+    return li;
+}
+
 
 
 // Steg 5: Spara och rendera i ett
 // ---------------------------------------------------------------
 // saveAndRender() anropas efter varje ändring.
 
+function saveAndRender() {
+    saveTodos()
+    loadTodos()
+}
 
 
 // Steg 6: Lägg till en todo
@@ -77,10 +146,48 @@ const clearDoneButton = document.querySelector("#clear-done");
 // Varför duger inte arrayens index som id?
 
 
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const text = input.value.trim()
+
+    if (text === "") {
+        return;
+    }
+
+    const todo = {
+        id: crypto.randomUUID(),
+        text: text,
+        done: false
+    }
+
+    todos.push(todo)
+
+    // TODO spara till localstorage
+
+    // rendera nya listan
+
+    renderTodos()
+    saveAndRender();
+
+    input.value = "";
+
+    console.log(todos)
+})
+
+
 // Steg 7: Hitta en todo med id
 // ---------------------------------------------------------------
 // findIndexById(id) returnerar platsen i arrayen, eller -1.
 
+function findIndexById(id) {
+    for (let i = 0; i < todos.length; i++) {
+        if (todos[i].id === id) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 
 // Steg 8: Bocka av och ta bort, med event delegation
@@ -89,7 +196,46 @@ const clearDoneButton = document.querySelector("#clear-done");
 // - change på en .todo-item-checkbox: ändra todo.done
 // - click på en .todo-item-delete: ta bort med splice
 
+list.addEventListener("change", (event) => {
 
+    if (!event.target.matches(".todo-item-checkbox")) {
+        return;
+    }
+
+    const id = event.target.closest(".todo-item").dataset.id;
+    const todo = todos[findIndexById(id)];
+
+    todo.done = event.target.checked
+    console.log(todos)
+    renderTodos()
+    saveAndRender()
+
+
+
+})
+
+// TA BORT KNAPPEN
+list.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest(".todo-item-delete")
+
+    if (deleteButton === null) {
+        return;
+    }
+
+    const id = deleteButton.closest(".todo-item").dataset.id;
+
+    // Hitta index utifrån Id
+    const index = findIndexById(id)
+
+    // Ta bort todon från lista
+
+    todos.splice(index, 1)
+
+    console.log(todos)
+
+    renderTodos()
+    saveAndRender()
+})
 
 
 // Steg 9: Rensa klara
@@ -101,3 +247,4 @@ const clearDoneButton = document.querySelector("#clear-done");
 // Steg 10: Rita listan när sidan laddas
 // ---------------------------------------------------------------
 
+renderTodos()
