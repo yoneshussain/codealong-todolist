@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todolist</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="js/main.js" defer></script>
+  </head>
+  <body>
+    <main class="container stack gap-l">
+      <header class="stack gap-xs">
+        <h1 class="title">Att göra</h1>
+        <p class="text-muted">Sparas i webbläsaren, så listan finns kvar när du laddar om.</p>
+      </header>
+
+      <form class="todo-form cluster" id="todo-form">
+        <label class="visually-hidden" for="todo-input">Ny uppgift</label>
+        <input
+          class="input"
+          id="todo-input"
+          type="text"
+          placeholder="Vad behöver göras?"
+          autocomplete="off"
+          required
+        />
+        <button class="button" type="submit">Lägg till</button>
+      </form>
+
+      <section class="stack gap-s" aria-label="Uppgifter">
+        <ul class="todo-list stack gap-xs" id="todo-list"></ul>
+        <p class="empty-state" id="empty-state">Inget att göra. Skönt!</p>
+      </section>
+
+      <footer class="todo-footer cluster">
+        <p class="text-muted" id="todo-count" aria-live="polite"></p>
+        <button class="button" data-variant="ghost" type="button" id="clear-done">Rensa klara</button>
+      </footer>
+    </main>
+  </body>
+</html>
